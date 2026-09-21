@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useAppData } from '../hooks/useAppData'
+import { supabase } from '../lib/supabase'
 import { Card } from '../components/ui/Card'
 import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
@@ -10,13 +11,39 @@ import { Avatar } from '../components/ui/Avatar'
 const blank = { name: '', email: '', password: '' }
 
 export function Usuarios() {
-  const { users, addEntity, updateEntity, deleteEntity } = useAppData()
+  const { addEntity, updateEntity, deleteEntity } = useAppData()
+  const [users, setUsers] = useState([])
+  const [loadingUsers, setLoadingUsers] = useState(true)
+  const [usersError, setUsersError] = useState('')
   const [open, setOpen] = useState(false)
   const [selected, setSelected] = useState(null)
   const [editingUser, setEditingUser] = useState(null)
   const [form, setForm] = useState(blank)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+
+  useEffect(() => {
+    let active = true
+
+    async function loadUsers() {
+      const { data, error: queryError } = await supabase.from('profiles').select('*')
+      if (!active) return
+      if (queryError) {
+        setUsersError('Não foi possível carregar os usuários.')
+        setLoadingUsers(false)
+        return
+      }
+
+      setUsers((data || []).map((profile) => ({ ...profile, papel: profile.role })))
+      setLoadingUsers(false)
+    }
+
+    loadUsers()
+    return () => { active = false }
+  }, [])
+
+  if (loadingUsers) return <div className="grid gap-6"><Card><p className="py-6 text-center text-sm text-[#6B7280]">Carregando usuários...</p></Card></div>
+  if (usersError) return <div className="grid gap-6"><Card><p className="py-6 text-center text-sm font-semibold text-[#b42345]">{usersError}</p></Card></div>
 
   // Mantém os campos do usuário controlados pelo React.
   function change(event) { setForm((current) => ({ ...current, [event.target.name]: event.target.value })) }

@@ -15,9 +15,10 @@ export function Login() {
     setForm((current) => ({ ...current, [event.target.name]: event.target.value }))
   }
 
-  function submit(event) {
+  async function submit(event) {
     event.preventDefault()
-    const result = login(form.username, form.password)
+    setError('')
+    const result = await login(form.username, form.password)
     if (!result.ok) {
       setError(result.message)
       return

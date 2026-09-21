@@ -1,59 +1,87 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
-import { useAppData } from '../hooks/useAppData'
+import { supabase } from '../lib/supabase'
 
 const AuthContext = createContext(null)
-const AUTH_STORAGE_KEY = 'agencia-diaz-auth'
 
 export function AuthProvider({ children }) {
-  const { users, currentUser, setCurrentUser } = useAppData()
-  const [session, setSession] = useState(() => {
-    try {
-      const saved = window.localStorage.getItem(AUTH_STORAGE_KEY)
-      return saved ? JSON.parse(saved) : null
-    } catch {
+  const [session, setSession] = useState(null)
+  const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  async function loadProfile(nextSession) {
+    if (!nextSession?.user) {
+      setUser(null)
       return null
     }
-  })
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, name, role, created_at, updated_at')
+      .eq('id', nextSession.user.id)
+      .single()
+
+    if (error) {
+      setUser(null)
+      return error
+    }
+
+    setUser({ ...data, email: nextSession.user.email, papel: data.role })
+    return null
+  }
 
   useEffect(() => {
-    if (session?.userId) {
-      window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(session))
-      return
-    }
-    window.localStorage.removeItem(AUTH_STORAGE_KEY)
-  }, [session])
+    let mounted = true
 
-  useEffect(() => {
-    if (!session?.userId) return
-    const isValidUser = users.some((user) => user.id === session.userId)
-    if (!isValidUser) {
-      setSession(null)
-      setCurrentUser(null)
+    async function initialize() {
+      const { data, error } = await supabase.auth.getSession()
+      if (!mounted) return
+      if (error) {
+        setSession(null)
+        setUser(null)
+      } else {
+        setSession(data.session)
+        await loadProfile(data.session)
+      }
+      if (mounted) setLoading(false)
     }
-  }, [session, users, setCurrentUser])
+
+    initialize()
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, nextSession) => {
+      if (!mounted) return
+      setSession(nextSession)
+      if (!nextSession) {
+        setUser(null)
+        setLoading(false)
+        return
+      }
+      setTimeout(() => { if (mounted) loadProfile(nextSession) }, 0)
+    })
+
+    return () => {
+      mounted = false
+      subscription.unsubscribe()
+    }
+  }, [])
 
   const value = useMemo(() => ({
-    isAuthenticated: Boolean(session?.userId && currentUser),
-    user: currentUser,
-    login: (userName, password) => {
-      const normalizedName = userName.trim()
-      const candidate = users.find((user) => user.name.trim().toLowerCase() === normalizedName.toLowerCase())
-      if (!candidate) return { ok: false, message: 'Usuário não encontrado.' }
+    isAuthenticated: Boolean(session?.user && user),
+    user,
+    loading,
+    login: async (email, password) => {
+      const { data, error } = await supabase.auth.signInWithPassword({ email: email.trim(), password })
+      if (error) return { ok: false, message: 'E-mail ou senha inválidos.' }
 
-      const storedPassword = candidate.password ?? 'agencia123'
-      if (String(password || '').trim() !== String(storedPassword)) {
-        return { ok: false, message: 'Senha inválida.' }
+      const profileError = await loadProfile(data.session)
+      if (profileError) {
+        await supabase.auth.signOut()
+        return { ok: false, message: 'Perfil do usuário não encontrado.' }
       }
 
-      setCurrentUser(candidate.id)
-      setSession({ userId: candidate.id, name: candidate.name })
+      setSession(data.session)
       return { ok: true }
     },
-    logout: () => {
-      setCurrentUser(null)
-      setSession(null)
-    },
-  }), [currentUser, session, setCurrentUser, users])
+    logout: () => supabase.auth.signOut(),
+  }), [loading, session, user])
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

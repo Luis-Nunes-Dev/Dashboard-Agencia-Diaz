@@ -30,5 +30,10 @@ export function loadData() {
 
 // Persiste o estado atual do workspace no navegador.
 export function saveData(data) {
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+  const safeUsers = normalizeArray(data.users).map((user) => {
+    const cleanUser = { ...user }
+    delete cleanUser.password
+    return cleanUser
+  })
+  window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...data, users: safeUsers }))
 }
