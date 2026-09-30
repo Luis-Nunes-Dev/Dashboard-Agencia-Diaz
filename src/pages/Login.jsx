@@ -30,12 +30,8 @@ export function Login() {
 
   return <div className="flex min-h-screen items-center justify-center bg-[#7C3AED] px-4 py-8">
     <div className="w-full max-w-md rounded-2xl border border-white/20 bg-white/95 p-6 shadow-[0_20px_45px_rgba(25,10,58,0.25)] backdrop-blur-sm sm:p-8">
-      <div className="mb-6 flex items-center justify-center gap-3">
-        <div className="grid h-11 w-11 place-items-center rounded-xl bg-(--color-primary) text-xl font-bold text-white">d.</div>
-        <div>
-          <p className="text-xs font-bold uppercase tracking-[0.18em] text-(--color-text-muted)">Workspace</p>
-          <h1 className="text-2xl font-bold text-(--color-text)">Agência Diaz</h1>
-        </div>
+      <div className="mb-6 flex justify-center">
+        <img src="/logodiaz.png" alt="DIAZ Agência" className="h-auto w-40 object-contain" />
       </div>
 
       <form onSubmit={submit} className="grid gap-4">

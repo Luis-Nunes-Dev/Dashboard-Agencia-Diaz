@@ -59,38 +59,26 @@ Deno.serve(async (request) => {
   }
 
   if (!profile || profile.role !== 'admin') {
-    return jsonResponse({ error: 'Apenas administradores podem criar usuários.' }, 403)
+    return jsonResponse({ error: 'Apenas administradores podem excluir usuários.' }, 403)
   }
 
-  let payload: { email?: unknown; password?: unknown; name?: unknown; role?: unknown }
+  let payload: { userId?: unknown }
   try {
     payload = await request.json()
   } catch {
     return jsonResponse({ error: 'Corpo da requisição inválido.' }, 400)
   }
 
-  const email = typeof payload.email === 'string' ? payload.email.trim() : ''
-  const password = typeof payload.password === 'string' ? payload.password : ''
-  const name = typeof payload.name === 'string' ? payload.name.trim() : ''
-  const role = typeof payload.role === 'string' ? payload.role.trim() : ''
-
-  if (!email || !password || !name || !role) {
-    return jsonResponse({ error: 'email, password, name e role são obrigatórios.' }, 400)
+  const userId = typeof payload.userId === 'string' ? payload.userId.trim() : ''
+  if (!userId) {
+    return jsonResponse({ error: 'userId é obrigatório.' }, 400)
   }
 
-  const { data, error: createError } = await adminClient.auth.admin.createUser({
-    email,
-    password,
-    email_confirm: true,
-    user_metadata: { name, role },
-  })
+  const { error: deleteError } = await adminClient.auth.admin.deleteUser(userId)
 
-  if (createError || !data.user) {
-    return jsonResponse({ error: createError?.message || 'Não foi possível criar o usuário.' }, createError?.status || 400)
+  if (deleteError) {
+    return jsonResponse({ error: deleteError.message || 'Não foi possível excluir o usuário.' }, deleteError.status || 400)
   }
 
-  return jsonResponse({
-    success: true,
-    user: { id: data.user.id, email: data.user.email },
-  })
+  return jsonResponse({ success: true, userId })
 })
