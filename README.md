@@ -1,16 +1,99 @@
-# React + Vite
+# Dashboard Agência
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Sistema web para gerenciamento de uma agência, desenvolvido para centralizar clientes, demandas, agenda e controle financeiro em um único lugar.
 
-Currently, two official plugins are available:
+O projeto possui uma interface moderna e simples, com os dados armazenados em banco de dados e autenticação de usuários.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## ✨ Funcionalidades
 
-## React Compiler
+### 📊 Dashboard
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- Visão geral da agência
+- Quantidade de clientes ativos
+- Valores pagos
+- Valores a receber
+- Gráfico financeiro mensal/anual
+- Pontos de atenção
+- Demandas recentes
+- Próximos compromissos
 
-## Expanding the ESLint configuration
+### 👥 Clientes
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- Cadastro de clientes
+- Edição de clientes
+- Exclusão de clientes
+- Informações básicas como nome, email e segmento
+
+### 📋 Demandas
+
+- Cadastro de demandas
+- Associação com clientes
+- Definição de responsável
+- Prazo de entrega
+- Status da demanda
+- Edição e exclusão
+- Atualização do status
+
+### 📅 Agenda
+
+- Cadastro de compromissos
+- Data e horário
+- Descrição
+- Responsável
+- Conclusão e reabertura de compromissos
+
+### 💰 Financeiro
+
+- Contratos recorrentes
+- Controle de recebimentos
+- Serviços avulsos
+- Pagamentos parciais
+- Histórico de pagamentos
+- Valores pagos
+- Valores pendentes
+- Controle de vencimentos
+- Visão mensal e anual
+- Histórico financeiro por cliente
+
+### 👤 Usuários
+
+- Login com autenticação
+- Controle de usuários
+- Perfis de acesso
+- Criação de novos usuários
+- Exclusão de usuários
+
+### ⚙️ Configurações
+
+- Configurações básicas da agência
+
+---
+
+## 🛠️ Tecnologias
+
+- **React**
+- **Vite**
+- **JavaScript**
+- **Supabase**
+  - PostgreSQL
+  - Authentication
+  - Row Level Security (RLS)
+  - Edge Functions
+- **Vercel**
+
+---
+
+## 🏗️ Arquitetura
+
+O frontend é desenvolvido em React e utiliza o Supabase como backend.
+
+```text
+React + Vite
+     │
+     ├── Supabase Auth
+     │
+     ├── PostgreSQL
+     │
+     └── Supabase Edge Functions
+              │
+              └── Operações administrativas
